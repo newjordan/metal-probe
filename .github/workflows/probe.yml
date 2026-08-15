@@ -1,0 +1,38 @@
+name: probe
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  m1:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: identify
+        run: |
+          echo "== sysctl =="
+          sysctl -n hw.model machdep.cpu.brand_string 2>/dev/null
+          echo "== sw_vers =="
+          sw_vers
+      - name: generate
+        run: |
+          clang -fobjc-arc -framework Metal -framework Foundation probe.m -o probe
+          ./probe out.metallib
+          echo "== fat header =="
+          xxd -l 64 out.metallib
+  m4:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: identify
+        run: |
+          echo "== sysctl =="
+          sysctl -n hw.model machdep.cpu.brand_string 2>/dev/null
+          echo "== sw_vers =="
+          sw_vers
+      - name: generate
+        run: |
+          clang -fobjc-arc -framework Metal -framework Foundation probe.m -o probe
+          ./probe out.metallib
+          echo "== fat header =="
+          xxd -l 64 out.metallib
