@@ -7,8 +7,6 @@ int main(int argc, char **argv) {
         printf("device name: %s\n", [[dev name] UTF8String]);
         MTLArchitecture *a = [dev architecture];
         printf("arch name: %s\n", [[a name] UTF8String]);
-        printf("arch family: %lu\n", (unsigned long)[a family]);
-        printf("maxThreadsPerThreadgroup: %lu\n", (unsigned long)[dev maxThreadsPerThreadgroup]);
 
         NSString *src = @"#include <metal_stdlib>\n"
                          "using namespace metal;\n"
