@@ -1,9 +1,18 @@
 #import <Metal/Metal.h>
 #import <Foundation/Foundation.h>
+#include <stdio.h>
 
 int main(int argc, char **argv) {
     @autoreleasepool {
+        if (argc < 2) {
+            fprintf(stderr, "usage: %s <output.metallib>\n", argv[0]);
+            return 1;
+        }
         id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+        if (!dev) {
+            fprintf(stderr, "no Metal device\n");
+            return 1;
+        }
         printf("device name: %s\n", [[dev name] UTF8String]);
         MTLArchitecture *a = [dev architecture];
         printf("arch name: %s\n", [[a name] UTF8String]);
@@ -17,6 +26,7 @@ int main(int argc, char **argv) {
         printf("kernel count: %lu\n", (unsigned long)[[lib functionNames] count]);
 
         id<MTLBinaryArchive> arch = [dev newBinaryArchiveWithDescriptor:[MTLBinaryArchiveDescriptor new] error:&e];
+        if (!arch) { printf("arch err: %s\n", [[e localizedDescription] UTF8String]); return 1; }
         for (NSString *k in [lib functionNames]) {
             MTLComputePipelineDescriptor *cpd = [MTLComputePipelineDescriptor new];
             cpd.computeFunction = [lib newFunctionWithName:k];
