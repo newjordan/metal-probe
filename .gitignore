@@ -1,4 +1,8 @@
 probe
+probe.o
+probe_format.o
+test_format
 out.metallib
 *.metallib
+report.json
 .DS_Store
