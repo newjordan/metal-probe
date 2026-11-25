@@ -1,38 +1,42 @@
 name: probe
+
 on:
   push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  m1:
-    runs-on: macos-14
+  probe:
+    name: ${{ matrix.runner }}
+    runs-on: ${{ matrix.runner }}
+    env:
+      CC: clang
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-14 was retired on 2026-11-02. These are the current arm64 images.
+        runner: [macos-15, macos-26]
     steps:
       - uses: actions/checkout@v4
+
       - name: identify
         run: |
           echo "== sysctl =="
-          sysctl -n hw.model machdep.cpu.brand_string 2>/dev/null
+          sysctl -n hw.model machdep.cpu.brand_string 2>/dev/null || true
           echo "== sw_vers =="
           sw_vers
-      - name: generate
+
+      - name: unit tests
+        run: make test
+
+      - name: build
+        run: make probe
+
+      - name: run and validate JSON
         run: |
-          clang -fobjc-arc -framework Metal -framework Foundation probe.m -o probe
-          ./probe out.metallib
-          echo "== fat header =="
-          xxd -l 64 out.metallib
-  m4:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: identify
-        run: |
-          echo "== sysctl =="
-          sysctl -n hw.model machdep.cpu.brand_string 2>/dev/null
-          echo "== sw_vers =="
-          sw_vers
-      - name: generate
-        run: |
-          clang -fobjc-arc -framework Metal -framework Foundation probe.m -o probe
-          ./probe out.metallib
+          set -o pipefail
+          ./probe --json out.metallib | tee report.json
+          python3 scripts/validate_report.py report.json out.metallib
           echo "== fat header =="
           xxd -l 64 out.metallib
